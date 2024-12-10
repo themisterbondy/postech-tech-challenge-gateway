@@ -82,9 +82,9 @@ resource "azurerm_application_gateway" "this" {
   location            = var.location
 
   sku {
-    name     = "WAF_v2"
-    tier     = "WAF_v2"
-    capacity = 1
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 2
   }
 
   gateway_ip_configuration {
@@ -163,6 +163,7 @@ resource "azurerm_application_gateway" "this" {
     rule_type          = "PathBasedRouting"
     http_listener_name = "listener-80"
     url_path_map_name  = "appgw-path-map"
+    priority           = 100
   }
 
   waf_configuration {
