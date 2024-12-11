@@ -46,12 +46,12 @@ variable "admin_backend_ip" {
 
 variable "vnet_name" {
   type    = string
-  default = "postech-fiap-vnet"
+  default = "postech-fiap-vnet-appgw"
 }
 
 variable "subnet_name" {
   type    = string
-  default = "postech-fiap-subnet"
+  default = "postech-fiap-subnet-appgw"
 }
 
 resource "azurerm_virtual_network" "this" {
