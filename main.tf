@@ -144,3 +144,8 @@ resource "azurerm_application_gateway" "this" {
     project = "postech-fiap"
   }
 }
+
+output "public_ip" {
+  description = "O endereço IP público associado ao Application Gateway"
+  value       = azurerm_public_ip.this.ip_address
+}
