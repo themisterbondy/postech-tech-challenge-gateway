@@ -114,13 +114,24 @@ resource "azurerm_application_gateway" "this" {
     ip_addresses = [var.admin_backend_ip]
   }
 
+  probe {
+    name                = "admin-health-probe"
+    protocol            = "Http"
+    path                = "/health"
+    interval            = 30
+    timeout             = 30
+    unhealthy_threshold = 3
+    host                = var.admin_backend_ip
+    port                = 80
+  }
+
   backend_http_settings {
     name                  = "function-http-settings"
     cookie_based_affinity = "Disabled"
     port                  = 443
     protocol              = "Https"
     request_timeout       = 30
-    path                  = "/api"
+    host_name             = var.function_host_name
   }
 
   backend_http_settings {
@@ -129,6 +140,9 @@ resource "azurerm_application_gateway" "this" {
     port                  = 80
     protocol              = "Http"
     request_timeout       = 30
+    path                  = "/api"
+    probe_name            = "admin-health-probe"
+    host_name             = var.admin_backend_ip
   }
 
   url_path_map {
@@ -138,7 +152,7 @@ resource "azurerm_application_gateway" "this" {
 
     path_rule {
       name                       = "api-paths"
-      paths                      = ["/func/*"]
+      paths                      = ["/api/*"]
       backend_address_pool_name  = "function-backend-pool"
       backend_http_settings_name = "function-http-settings"
     }
