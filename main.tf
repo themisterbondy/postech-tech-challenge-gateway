@@ -39,11 +39,6 @@ variable "function_host_name" {
   default = "postech-fiap-serverless.azurewebsites.net"
 }
 
-variable "admin_backend_ip" {
-  type    = string
-  default = "172.171.147.183"
-}
-
 variable "vnet_name" {
   type    = string
   default = "postech-fiap-vnet-appgw"
@@ -108,23 +103,6 @@ resource "azurerm_application_gateway" "this" {
     fqdns = [var.function_host_name]
   }
 
-  # Backend para Admin (usando IP)
-  backend_address_pool {
-    name         = "admin-backend-pool"
-    ip_addresses = [var.admin_backend_ip]
-  }
-
-  probe {
-    name                = "admin-health-probe"
-    protocol            = "Http"
-    path                = "/health"
-    interval            = 30
-    timeout             = 30
-    unhealthy_threshold = 3
-    host                = var.admin_backend_ip
-    port                = 80
-  }
-
   backend_http_settings {
     name                  = "function-http-settings"
     cookie_based_affinity = "Disabled"
@@ -132,17 +110,6 @@ resource "azurerm_application_gateway" "this" {
     protocol              = "Https"
     request_timeout       = 30
     host_name             = var.function_host_name
-  }
-
-  backend_http_settings {
-    name                  = "admin-http-settings"
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 30
-    path                  = "/api"
-    probe_name            = "admin-health-probe"
-    host_name             = var.admin_backend_ip
   }
 
   url_path_map {
@@ -155,13 +122,6 @@ resource "azurerm_application_gateway" "this" {
       paths                      = ["/api/*"]
       backend_address_pool_name  = "function-backend-pool"
       backend_http_settings_name = "function-http-settings"
-    }
-
-    path_rule {
-      name                       = "admin-paths"
-      paths                      = ["/admin/*"]
-      backend_address_pool_name  = "admin-backend-pool"
-      backend_http_settings_name = "admin-http-settings"
     }
   }
 
@@ -184,4 +144,3 @@ resource "azurerm_application_gateway" "this" {
     project = "postech-fiap"
   }
 }
-
