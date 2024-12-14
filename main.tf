@@ -41,7 +41,7 @@ variable "function_host_name" {
 
 variable "admin_backend_ip" {
   type    = string
-  default = "172.212.73.87"
+  default = "172.171.147.183"
 }
 
 variable "vnet_name" {
@@ -114,13 +114,13 @@ resource "azurerm_application_gateway" "this" {
     ip_addresses = [var.admin_backend_ip]
   }
 
-  # Ajuste o nome do bloco para backend_http_settings
   backend_http_settings {
     name                  = "function-http-settings"
     cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
+    port                  = 443
+    protocol              = "Https"
     request_timeout       = 30
+    path                  = "/api"
   }
 
   backend_http_settings {
@@ -138,7 +138,7 @@ resource "azurerm_application_gateway" "this" {
 
     path_rule {
       name                       = "api-paths"
-      paths                      = ["/api/*"]
+      paths                      = ["/func/*"]
       backend_address_pool_name  = "function-backend-pool"
       backend_http_settings_name = "function-http-settings"
     }
@@ -164,14 +164,6 @@ resource "azurerm_application_gateway" "this" {
     http_listener_name = "listener-80"
     url_path_map_name  = "appgw-path-map"
     priority           = 100
-  }
-
-  waf_configuration {
-    enabled            = true
-    firewall_mode      = "Prevention"
-    rule_set_type      = "OWASP"
-    rule_set_version   = "3.2"
-    request_body_check = true
   }
 
   tags = {
