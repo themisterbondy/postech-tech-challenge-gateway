@@ -39,19 +39,14 @@ variable "function_host_name" {
   default = "postech-fiap-serverless.azurewebsites.net"
 }
 
-variable "admin_backend_ip" {
-  type    = string
-  default = "172.212.73.87"
-}
-
 variable "vnet_name" {
   type    = string
-  default = "postech-fiap-vnet"
+  default = "postech-fiap-vnet-appgw"
 }
 
 variable "subnet_name" {
   type    = string
-  default = "postech-fiap-subnet"
+  default = "postech-fiap-subnet-appgw"
 }
 
 resource "azurerm_virtual_network" "this" {
@@ -108,27 +103,13 @@ resource "azurerm_application_gateway" "this" {
     fqdns = [var.function_host_name]
   }
 
-  # Backend para Admin (usando IP)
-  backend_address_pool {
-    name         = "admin-backend-pool"
-    ip_addresses = [var.admin_backend_ip]
-  }
-
-  # Ajuste o nome do bloco para backend_http_settings
   backend_http_settings {
     name                  = "function-http-settings"
     cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
+    port                  = 443
+    protocol              = "Https"
     request_timeout       = 30
-  }
-
-  backend_http_settings {
-    name                  = "admin-http-settings"
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 30
+    host_name             = var.function_host_name
   }
 
   url_path_map {
@@ -141,13 +122,6 @@ resource "azurerm_application_gateway" "this" {
       paths                      = ["/api/*"]
       backend_address_pool_name  = "function-backend-pool"
       backend_http_settings_name = "function-http-settings"
-    }
-
-    path_rule {
-      name                       = "admin-paths"
-      paths                      = ["/admin/*"]
-      backend_address_pool_name  = "admin-backend-pool"
-      backend_http_settings_name = "admin-http-settings"
     }
   }
 
@@ -166,16 +140,12 @@ resource "azurerm_application_gateway" "this" {
     priority           = 100
   }
 
-  waf_configuration {
-    enabled            = true
-    firewall_mode      = "Prevention"
-    rule_set_type      = "OWASP"
-    rule_set_version   = "3.2"
-    request_body_check = true
-  }
-
   tags = {
     project = "postech-fiap"
   }
 }
 
+output "public_ip" {
+  description = "O endereço IP público associado ao Application Gateway"
+  value       = azurerm_public_ip.this.ip_address
+}
