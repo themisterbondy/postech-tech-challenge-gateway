@@ -38,7 +38,7 @@ O arquivo `main.yml` define um fluxo de trabalho GitHub Actions para validar, re
     - **Terraform Init**: Inicializa o diretório e baixa os providers necessários.
     - **Terraform Validate**: Valida a sintaxe e estrutura do código de infraestrutura.
     - **Terraform Plan**: Gera o plano de execução.
-    - **Terraform Apply**: Aplica as mudanças no branch `main`.
+    - **Terraform Apply**: Aplica as mudanças quando um pr e feito para a branch `main`.
 
 #### **Secrets Necessários**
 É necessário definir secrets no repositório para autenticar no Azure:
